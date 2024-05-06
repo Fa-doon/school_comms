@@ -4,6 +4,7 @@ const { connectToDB } = require("./config/db");
 const http = require("http");
 const path = require("path");
 const socket = require("socket.io");
+const cors = require("cors");
 
 // Importing routes
 const authRoute = require("./routes/authRoute");
@@ -18,6 +19,7 @@ const io = socket(server);
 const PORT = process.env.PORT || 8080;
 
 // Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
