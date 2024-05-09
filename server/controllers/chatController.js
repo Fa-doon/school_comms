@@ -1,61 +1,95 @@
 const { Chatroom, Chatmessage, User } = require("../models");
-
-// Function to generate room name
-const generateRoomName = (userId, recipientId) => {
-  const sortedUserIds = [userId, recipientId].sort((a, b) => a - b);
-  const roomName = `Room_${sortedUserIds.join("_")}`;
-
-  return roomName;
-};
+const { v4: uuidv4 } = require("uuid");
 
 // Create chat room
-const createChatroom = async (userId, recipientId) => {
+const createChatroom = async (req, res) => {
   try {
-    const roomName = generateRoomName(userId, recipientId);
-    const chatroom = await Chatroom.create({ name: roomName });
+    const { senderId, receiverId } = req.body;
 
-    return chatroom;
+    let chatroom = await Chatroom.findOne({
+      where: {
+        sender_id: senderId,
+        receiver_id: receiverId,
+      },
+    });
+
+    if (!chatroom) {
+      const roomName = `Room_${uuidv4()}`;
+
+      chatroom = await Chatroom.create({
+        name: roomName,
+        sender_id: senderId,
+        receiver_id: receiverId,
+      });
+    }
+
+    res.status(201).json({ message: "Chat initiated successfully", chatroom });
   } catch (error) {
-    console.log("Error creating chatroom", error);
-    throw new Error("Failed to create chatroom");
+    console.error("Error initiating chat:", error);
+    res.status(500).json({ error: "Failed to initiate chat" });
   }
 };
 
 //Create a new chat message
-const createChatMessage = async (roomId, senderId, receiverId, message) => {
+const sendMessage = async (req, res) => {
   try {
+    const { roomName, senderId, receiverId, message } = req.body;
+
+    let chatroom = await Chatroom.findOne({ where: { name: roomName } });
+    if (!chatroom) {
+      return res.status(404).json({ error: "Chatroom not found" });
+    }
+
+    if (
+      chatroom.sender_id !== senderId ||
+      chatroom.receiver_id !== receiverId
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Invalid sender or receiver for this chatroom" });
+    }
+
     const chatMessage = await Chatmessage.create({
-      room_id: roomId,
+      room_id: roomName,
       sender_id: senderId,
       receiver_id: receiverId,
       message: message,
     });
 
-    return chatMessage;
+    res.status(201).json({ message: "Message sent successfully", chatMessage });
   } catch (error) {
-    throw new Error("Failed to create chat message");
+    console.error("Error sending message:", error);
+    res.status(500).json({ error: "Failed to send message" });
   }
 };
 
 // Retrieve chat messages for a given room ID
-const getChatMessagesByRoomId = async (roomId) => {
+const getChatMessagesByRoomId = async (req, res) => {
   try {
-    const chatMessages = await Chatmessage.findAll({
-      where: { room_id: roomId },
+    const { roomName } = req.params;
+
+    const chatroom = await Chatroom.findOne({ where: { name: roomName } });
+    if (!chatroom) {
+      return res.status(404).json({ error: "Chatroom not found" });
+    }
+
+    const messages = await Chatmessage.findAll({
+      where: { room_id: roomName },
       include: [
-        { model: User, as: "sender" },
-        { model: User, as: "receiver" },
+        { model: User, as: "sender", attributes: ["id", "name"] },
+        { model: User, as: "receiver", attributes: ["id", "name"] },
       ],
     });
 
-    return chatMessages;
+    res.status(200).json({ messages });
   } catch (error) {
-    throw new Error("Failed to retrieve chat messages");
+    console.error("Error retrieving messages:", error);
+    res.status(500).json({ error: "Failed to retrieve messages" });
   }
 };
 
 module.exports = {
   createChatroom,
-  createChatMessage,
+  sendMessage,
   getChatMessagesByRoomId,
 };

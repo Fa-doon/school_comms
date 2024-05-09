@@ -41,30 +41,7 @@ const createUser = async (req, res) => {
   }
 };
 
-// Create role
-const createRole = async (req, res) => {
-  const { name } = req.body;
 
-  try {
-    const existingRole = await Role.findOne({ where: { name: name } });
-    if (existingRole) {
-      return res.status(409).json({
-        message: "Role already exists",
-      });
-    }
-
-    const newRole = await Role.create({
-      name,
-    });
-    return res.status(201).json({
-      message: "Role created successfully",
-      newRole,
-    });
-  } catch (error) {
-    console.error("Error registering user:", error);
-    res.status(500).json({ error: "Something went wrong" });
-  }
-};
 
 // Get a user by id
 const getUserById = async (req, res) => {
@@ -188,6 +165,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
+
 // const allUsers = async (req, res) => {
 //   const keyword = req.query.search;
 
@@ -196,7 +174,6 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   createUser,
-  createRole,
   getUserById,
   getStudents,
   getTeachers,

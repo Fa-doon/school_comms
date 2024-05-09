@@ -8,12 +8,28 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Chatroom.belongsTo(models.User, {
+        foreignKey: "sender_id",
+        as: "sender",
+      });
+
+      Chatroom.belongsTo(models.User, {
+        foreignKey: "receiver_id",
+        as: "receiver",
+      });
+
+      Chatroom.hasMany(models.Chatmessage, {
+        foreignKey: "room_id",
+        sourceKey: "name",
+        as: "messages",
+      });
     }
   }
   Chatroom.init(
     {
       name: DataTypes.STRING,
+      sender_id: DataTypes.INTEGER,
+      receiver_id: DataTypes.INTEGER,
     },
     {
       sequelize,

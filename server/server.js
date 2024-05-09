@@ -9,6 +9,8 @@ const cors = require("cors");
 // Importing routes
 const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
+const chatRoute = require("./routes/chatRoute");
+const roleRoute = require("./routes/roleRoute");
 
 const chatController = require("./controllers/chatController");
 
@@ -25,11 +27,16 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/users", authRoute);
 app.use("/api/users", userRoute);
+app.use("/api/chat", chatRoute);
+app.use("/api/role", roleRoute);
 
-app.use(express.static(path.join(__dirname, "../client")));
+// app.use(express.static(path.join(__dirname, "../client")));
 
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "../client/index.html"));
+// });
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/index.html"));
+  res.send("Hello Backend");
 });
 
 // Connection to DB
@@ -39,71 +46,10 @@ connectToDB();
 io.on("connection", (socket) => {
   console.log("New client connected", socket.id);
 
-  socket.on(
-    "sendMessage",
-    async ({ roomId, senderId, receiverId, message }) => {
-      try {
-        const chatMessage = await chatController.createChatMessage(
-          roomId,
-          senderId,
-          receiverId,
-          message
-        );
-        io.to(roomId).emit("receiveMessage", chatMessage);
-      } catch (error) {
-        socket.emit("sendMessageError", { message: error.message });
-      }
-    }
-  );
-
   // Handle disconnect event
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
-
-  // socket.on(
-  //   "sendMessage",
-  //   async ({ roomId, senderId, receiverId, message }) => {
-  //     try {
-  //       const chatMessage = await chatController.createChatMessage(
-  //         roomId,
-  //         senderId,
-  //         receiverId,
-  //         message
-  //       );
-  //       io.to(roomId).emit("receiveMessage", chatMessage);
-  //       console.log(roomId, senderId, receiverId, message);
-  //     } catch (error) {
-  //       socket.emit("sendMessageError", { message: error.message });
-  //     }
-  //   }
-  // );
-
-  // // Handle getChatMessages event
-  // socket.on("getChatMessages", async ({ roomId }) => {
-  //   try {
-  //     const chatMessages = await chatController.getChatMessagesByRoomId(roomId);
-  //     socket.emit("receiveChatMessages", chatMessages);
-  //   } catch (error) {
-  //     socket.emit("getChatMessagesError", { message: error.message });
-  //   }
-  // });
-
-  // // Handle createChatroom event
-  // socket.on("createChatroom", async ({ userId, recipientId }) => {
-  //   try {
-  //     const chatroom = await chatController.createChatroom(roomId);
-  //     socket.join(chatroom.name);
-  //     socket.emit("chatroomCreated", chatroom);
-  //   } catch (error) {
-  //     socket.emit("createChatroomError", { message: error.message });
-  //   }
-  // });
-
-  // // Handle disconnect event
-  // socket.on("disconnect", () => {
-  //   console.log("Client disconnected");
-  // });
 });
 
 server.listen(PORT, () => {

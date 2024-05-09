@@ -15,9 +15,4 @@ async function connectToDB() {
   return sequelize;
 }
 
-// sequelize
-//   .authenticate()
-//   .then(() => console.log(`Connection to DB successful`))
-//   .catch((err) => console.log(`An error occured: `, err));
-
 module.exports = { connectToDB };

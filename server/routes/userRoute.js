@@ -7,15 +7,17 @@ const {
   updateUser,
   deleteUser,
   createRole,
+  deleteRole,
 } = require("../controllers/userController");
 const { isAdmin } = require("../middlewares/authMiddleware");
+const { validateNewUser, validateRole } = require("../middlewares/validation");
 
 const router = express.Router();
 
 router.use(isAdmin);
 
-router.post("/register", createUser);
-router.post("/role", createRole);
+router.post("/register", validateNewUser, createUser);
+
 
 router.get("/students", getStudents);
 router.get("/teachers", getTeachers);
@@ -23,5 +25,6 @@ router.get("/teachers", getTeachers);
 router.get("/:id", getUserById);
 router.put("/update-user/:id", updateUser);
 router.delete("/delete-user/:id", deleteUser);
+
 
 module.exports = router;
