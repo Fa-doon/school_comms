@@ -41,8 +41,6 @@ const createUser = async (req, res) => {
   }
 };
 
-
-
 // Get a user by id
 const getUserById = async (req, res) => {
   const id = req.params.id;
@@ -164,7 +162,6 @@ const deleteUser = async (req, res) => {
     });
   }
 };
-
 
 // const allUsers = async (req, res) => {
 //   const keyword = req.query.search;

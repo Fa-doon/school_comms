@@ -10,7 +10,7 @@ const {
   deleteRole,
 } = require("../controllers/userController");
 const { isAdmin } = require("../middlewares/authMiddleware");
-const { validateNewUser, validateRole } = require("../middlewares/validation");
+const { validateNewUser} = require("../middlewares/validation");
 
 const router = express.Router();
 
