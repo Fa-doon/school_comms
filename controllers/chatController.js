@@ -1,25 +1,33 @@
 const { Chatroom, Chatmessage, User } = require("../models");
-const { v4: uuidv4 } = require("uuid");
+// const { v4: uuidv4 } = require("uuid");
 
 // Create chat room
 const createChatroom = async (req, res) => {
   try {
-    const { senderId, receiverId } = req.body;
+    const { receiverId } = req.body;
+    const senderId = req.user.id;
+
+    const sortedUsersIds = [senderId, receiverId].sort((a, b) => a - b);
+    const [sortedSenderId, sortedReceiverId] = sortedUsersIds;
 
     let chatroom = await Chatroom.findOne({
       where: {
-        sender_id: senderId,
-        receiver_id: receiverId,
+        sender_id: sortedSenderId,
+        receiver_id: sortedReceiverId,
       },
     });
 
     if (!chatroom) {
-      const roomName = `Room_${uuidv4()}`;
+      const roomName = `Room_${sortedSenderId}_${sortedReceiverId}`;
 
       chatroom = await Chatroom.create({
         name: roomName,
-        sender_id: senderId,
-        receiver_id: receiverId,
+        sender_id: sortedSenderId,
+        receiver_id: sortedReceiverId,
+      });
+    } else {
+      return res.status(409).json({
+        message: `Chatroom already exists`,
       });
     }
 

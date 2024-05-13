@@ -30,11 +30,6 @@ app.use("/api/users", userRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/role", roleRoute);
 
-// app.use(express.static(path.join(__dirname, "../client")));
-
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../client/index.html"));
-// });
 app.get("/", (req, res) => {
   res.send("Hello Backend");
 });
@@ -46,7 +41,12 @@ connectToDB();
 io.on("connection", (socket) => {
   console.log("New client connected", socket.id);
 
-  // Handle disconnect event
+  socket.on("joinroom", (roomName) => {
+    console.log(roomName);
+    socket.join(roomName);
+    console.log(`Client joined: ${roomName}`);
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });

@@ -48,7 +48,7 @@ const isUser = async (req, res, next) => {
     }
 
     const token = await body.split(" ")[1];
-    const decoded = await jwt.verify(token, process.env.JWT_KEY);
+    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({ where: { id: decoded.id } });
 
     if (!user) {
