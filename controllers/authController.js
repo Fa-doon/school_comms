@@ -34,7 +34,7 @@ const loginUser = async (req, res) => {
           id: existingUser.id,
         },
         process.env.JWT_KEY,
-        { expiresIn: "15m" }
+        { expiresIn: "1d" }
       );
 
       return res.status(200).json({
@@ -51,7 +51,7 @@ const loginUser = async (req, res) => {
           username: existingUser.username,
         },
         process.env.JWT_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "7d" }
       );
       return res.status(200).json({
         message: "Login successful",

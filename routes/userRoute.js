@@ -14,7 +14,7 @@ const { validateNewUser } = require("../middlewares/validation");
 
 const router = express.Router();
 
-// router.use(isAdmin);
+router.use(isAdmin);
 
 router.post("/register", validateNewUser, createUser);
 

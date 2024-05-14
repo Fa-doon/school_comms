@@ -4,7 +4,7 @@ const { createRole, deleteRole } = require("../controllers/roleController");
 const { isAdmin } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-// router.use(isAdmin);
+router.use(isAdmin);
 
 router.post("/", validateRole, createRole);
 router.delete("/:id", deleteRole);
