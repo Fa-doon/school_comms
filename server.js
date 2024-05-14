@@ -42,7 +42,6 @@ io.on("connection", (socket) => {
   console.log("New client connected", socket.id);
 
   socket.on("joinroom", (roomName) => {
-    console.log(roomName);
     socket.join(roomName);
     console.log(`Client joined: ${roomName}`);
   });

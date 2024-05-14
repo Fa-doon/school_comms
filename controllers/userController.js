@@ -66,7 +66,7 @@ const getUserById = async (req, res) => {
 
 const getStudents = async (req, res) => {
   try {
-    const students = await User.findAll({ where: { role_id: 2 } });
+    const students = await User.findAll({ where: { role_id: 3 } });
     if (students.length === 0) {
       return res
         .status(404)
@@ -87,7 +87,7 @@ const getStudents = async (req, res) => {
 
 const getTeachers = async (req, res) => {
   try {
-    const teachers = await User.findAll({ where: { role_id: 3 } });
+    const teachers = await User.findAll({ where: { role_id: 2 } });
 
     if (teachers.length === 0) {
       return res
