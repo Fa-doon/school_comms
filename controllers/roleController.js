@@ -6,6 +6,7 @@ const createRole = async (req, res) => {
 
   try {
     const existingRole = await Role.findOne({ where: { name: name } });
+
     if (existingRole) {
       return res.status(409).json({
         message: "Role already exists",
@@ -20,7 +21,20 @@ const createRole = async (req, res) => {
       newRole,
     });
   } catch (error) {
-    console.error("Error registering user:", error);
+    console.error("Error creating role:", error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+};
+
+const getAllRoles = async (req, res) => {
+  try {
+    const roles = await Role.findAll();
+    res.status(200).json({
+      message: "Roles retreived successfully",
+      roles,
+    });
+  } catch (error) {
+    console.error("Error fetching roles:", error);
     res.status(500).json({ error: "Something went wrong" });
   }
 };
@@ -51,4 +65,5 @@ const deleteRole = async (req, res) => {
 module.exports = {
   createRole,
   deleteRole,
+  getAllRoles,
 };
