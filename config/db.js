@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 const config = require("./config");
 
 async function connectToDB() {
-  const sequelize = new Sequelize(config.development);
+  const sequelize = new Sequelize(config.production);
 
   try {
     await sequelize.authenticate();
