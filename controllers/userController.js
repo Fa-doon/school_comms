@@ -30,9 +30,12 @@ const createUser = async (req, res) => {
     });
 
     const userId = newUser.id;
+    const userResponse = newUser.get({ plain: true });
+    delete userResponse.password;
+
     res.status(201).json({
       message: "Registration successful",
-      newUser,
+      newUser: userResponse,
       userId: userId,
     });
   } catch (error) {
@@ -66,11 +69,20 @@ const getUserById = async (req, res) => {
 
 const getStudents = async (req, res) => {
   try {
-    const students = await User.findAll({ where: { role_id: 3 } });
+    const role = await Role.findOne({ where: { name: "student" } });
+    if (!role) {
+      return res.status(404).json({ message: "Role 'student' not found" });
+    }
+
+    const students = await User.findAll({
+      where: { role_id: role.id },
+      attributes: { exclude: ["password"] },
+    });
     if (students.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No students found in the database" });
+      return res.status(200).json({
+        message: "No students found in the database",
+        students: [],
+      });
     }
 
     return res.status(200).json({
@@ -87,14 +99,23 @@ const getStudents = async (req, res) => {
 
 const getTeachers = async (req, res) => {
   try {
-    const teachers = await User.findAll({ where: { role_id: 2 } });
-
-    if (teachers.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No teachers found in the database" });
+    const role = await Role.findOne({ where: { name: "teacher" } });
+    if (!role) {
+      return res.status(404).json({ message: "Role 'teacher' not found" });
     }
-    res.status(200).json({
+
+    const teachers = await User.findAll({
+      where: { role_id: role.id },
+      attributes: { exclude: ["password"] },
+    });
+    if (teachers.length === 0) {
+      return res.status(200).json({
+        message: "No teachers found in the database",
+        teachers: [],
+      });
+    }
+
+    return res.status(200).json({
       message: "Teachers successfully retrieved",
       teachers,
     });
@@ -108,7 +129,7 @@ const getTeachers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const id = req.params.id;
-  const { name, email, role_name } = req.body;
+  const { name, username, email, role_name } = req.body;
 
   try {
     let user = await User.findByPk(id);
@@ -119,19 +140,31 @@ const updateUser = async (req, res) => {
       });
     }
 
-    const role = await Role.findOne({ where: { name: role_name } });
-    if (!role) {
-      return res.status(404).json({ error: "Role not found" });
+    if (name) {
+      user.name = name;
+    }
+    if (username) {
+      user.username = username;
+    }
+    if (email) {
+      user.email = email;
     }
 
-    user.name = name;
-    user.email = email;
-    user.role_id = role.id;
+    if (role_name) {
+      const role = await Role.findOne({ where: { name: role_name } });
+      if (!role) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+      user.role_id = role.id;
+    }
 
     await user.save();
 
+    const { password, ...updatedUser } = user.toJSON();
+
     res.status(200).json({
       message: "User updated successfully",
+      user: updatedUser,
     });
   } catch (error) {
     console.log(error);

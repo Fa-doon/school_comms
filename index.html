@@ -20,6 +20,51 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
-    <script src="script.js"></script>
+    <script>
+        const socket = io();
+
+        // Function to send a message
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (message !== '') {
+                const data = {
+                    roomName: 'Room_2_4', // Replace with actual room name
+                    senderId: 2, // Replace with actual sender ID
+                    receiverId: 4, // Replace with actual receiver ID
+                    message: message
+                };
+
+                // Emit sendMessage event to the server
+                socket.emit('sendMessage', data);
+
+                // Clear input after sending message
+                messageInput.value = '';
+            }
+        }
+
+        // Listen for receiveMessage event
+        socket.on('receiveMessage', (data) => {
+            const { sender_id, message } = data;
+
+            // Display the received message in the message container
+            const messageContainer = document.getElementById('messageContainer');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${sender_id}: ${message}`;
+            messageContainer.appendChild(messageElement);
+        });
+
+        // Function to join chatroom when the page loads
+        window.onload = () => {
+            const data = {
+                senderId: '<senderId>', // Replace with actual sender ID
+                receiverId: '<receiverId>' // Replace with actual receiver ID
+            };
+
+            // Emit joinRoom event to the server
+            socket.emit('joinRoom', data);
+        };
+    </script>
 </body>
 </html>

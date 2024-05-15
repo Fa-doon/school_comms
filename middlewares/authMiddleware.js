@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { User, Role } = require("../models");
 
 const isAdmin = async (req, res, next) => {
   try {
@@ -21,12 +21,13 @@ const isAdmin = async (req, res, next) => {
       });
     }
 
-    if (user.role_id !== 1) {
+    const adminRole = await Role.findOne({ where: { name: "admin" } });
+
+    if (!adminRole || user.role_id !== adminRole.id) {
       return res.status(403).json({
         message: "Forbidden - Admin access required",
       });
     }
-
     req.user = user;
     next();
   } catch (error) {

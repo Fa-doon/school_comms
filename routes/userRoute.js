@@ -22,7 +22,7 @@ router.get("/students", getStudents);
 router.get("/teachers", getTeachers);
 // router.get("/all-users", allUsers);
 router.get("/:id", getUserById);
-router.put("/update-user/:id", updateUser);
+router.patch("/update-user/:id", updateUser);
 router.delete("/delete-user/:id", deleteUser);
 
 module.exports = router;

@@ -12,7 +12,7 @@ const userRoute = require("./routes/userRoute");
 const chatRoute = require("./routes/chatRoute");
 const roleRoute = require("./routes/roleRoute");
 
-const chatController = require("./controllers/chatController");
+const { createChatroom, sendMessage } = require("./controllers/chatController");
 
 const app = express();
 const server = http.createServer(app);
