@@ -57,10 +57,12 @@ const getUsersByRolename = async (req, res) => {
     }
 
     const users = await User.findAll({ where: { role_id: role.id } });
+    const userCount = await User.count({ where: { role_id: role.id } });
 
     res.status(200).json({
       message: `${role_name} users successfully retrieved`,
       users,
+      count: userCount,
     });
   } catch (error) {
     console.log(error);
@@ -223,11 +225,24 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// const allUsers = async (req, res) => {
-//   const keyword = req.query.search;
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.findAll();
 
-//   console.log(keyword);
-// };
+    const userCount = await User.count();
+
+    res.status(200).json({
+      message: "Users retrieved successfully",
+      users,
+      count: userCount,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Something went wrong",
+    });
+  }
+};
 
 module.exports = {
   createUser,
@@ -237,4 +252,5 @@ module.exports = {
   getTeachers,
   updateUser,
   deleteUser,
+  getAllUsers,
 };
