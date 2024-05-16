@@ -22,7 +22,7 @@ router.post("/register", validateNewUser, createUser);
 
 router.get("/students", getStudents);
 router.get("/teachers", getTeachers);
-router.get("/", getAllUsers);
+router.get("/all-users", getAllUsers);
 router.get("/:role_name", getUsersByRolename);
 router.get("/:id", getUserById);
 router.patch("/update-user/:id", updateUser);
