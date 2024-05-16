@@ -231,10 +231,29 @@ const getAllUsers = async (req, res) => {
 
     const userCount = await User.count();
 
+    const roles = await Role.findAll();
+
+    const roleCounts = {};
+
+    for (const role of roles) {
+      const count = await User.count({ where: { role_id: role.id } });
+      roleCounts[role.name] = count;
+    }
+
+    if (userCount === 0) {
+      return res.status(200).json({
+        message: "No users found in the database",
+        users: [],
+        count: 0,
+        roleCounts,
+      });
+    }
+
     res.status(200).json({
       message: "Users retrieved successfully",
       users,
       count: userCount,
+      roleCounts,
     });
   } catch (error) {
     console.log(error);
