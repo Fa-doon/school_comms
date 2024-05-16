@@ -64,6 +64,8 @@ const updateRole = async (req, res) => {
 
     if (name) {
       role.name = name;
+    } else {
+      
     }
 
     await role.save();

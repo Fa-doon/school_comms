@@ -44,7 +44,33 @@ const createUser = async (req, res) => {
   }
 };
 
-// Get a user by id
+// Get a user by role name
+const getUsersByRolename = async (req, res) => {
+  const { role_name } = req.params;
+  try {
+    const role = await Role.findOne({ where: { name: role_name } });
+
+    if (!role) {
+      return res.status(404).json({
+        message: `Role name with name - ${role_name} does not exist`,
+      });
+    }
+
+    const users = await User.findAll({ where: { role_id: role.id } });
+
+    res.status(200).json({
+      message: `${role_name} users successfully retrieved`,
+      users,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Something went wrong",
+    });
+  }
+};
+
+// Get user by id
 const getUserById = async (req, res) => {
   const id = req.params.id;
   try {
@@ -205,6 +231,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   createUser,
+  getUsersByRolename,
   getUserById,
   getStudents,
   getTeachers,
