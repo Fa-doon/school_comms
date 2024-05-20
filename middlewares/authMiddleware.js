@@ -7,12 +7,19 @@ const isAdmin = async (req, res, next) => {
 
     if (!body) {
       return res.status(401).json({
-        message: "Unauthorized",
+        message: "Unauthorized, no token provided",
       });
     }
 
     const token = await body.split(" ")[1];
-    const decoded = await jwt.verify(token, process.env.JWT_KEY);
+    let decoded;
+    try {
+      decoded = await jwt.verify(token, process.env.JWT_KEY);
+    } catch (error) {
+      return res.status(403).json({
+        message: "Forbidden - Invalid or expired token",
+      });
+    }
     const user = await User.findOne({ where: { username: decoded.username } });
 
     if (!user) {
@@ -20,20 +27,13 @@ const isAdmin = async (req, res, next) => {
         message: "Unauthorized",
       });
     }
-
-    const adminRole = await Role.findOne({ where: { name: "admin" } });
-
-    if (!adminRole || user.role_id !== adminRole.id) {
-      return res.status(403).json({
-        message: "Forbidden - Admin access required",
-      });
-    }
+  
     req.user = user;
     next();
   } catch (error) {
     console.log(error);
-    res.status(401).json({
-      message: "Incorrect or expired token",
+    res.status(500).json({
+      message: "Internal server error",
     });
   }
 };

@@ -12,6 +12,7 @@ const userRoute = require("./routes/userRoute");
 const chatRoute = require("./routes/chatRoute");
 const roleRoute = require("./routes/roleRoute");
 
+const { Chatroom, Chatmessage, User } = require("./models");
 const { createChatroom, sendMessage } = require("./controllers/chatController");
 
 const app = express();
@@ -30,10 +31,14 @@ app.use("/api/users", userRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/role", roleRoute);
 
-app.get("/", (req, res) => {
-  res.send("Hello Backend");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello Backend");
+// });
+app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 // Connection to DB
 connectToDB();
 
@@ -46,6 +51,37 @@ io.on("connection", (socket) => {
     console.log(`Client joined: ${roomName}`);
   });
 
+  socket.on("sendMessage", async (data) => {
+    const { roomName, senderId, receiverId, message } = data;
+
+    try {
+      const chatMessage = await Chatmessage.create({
+        room_id: roomName,
+        sender_id: senderId,
+        receiver_id: receiverId,
+        message: message,
+      });
+
+      // getting the sender's details to send with the emitted event
+      const sender = await User.findByPk(senderId, {
+        attributes: ["id", "name"],
+      });
+
+    
+      io.to(roomName).emit("newMessage", {
+        ...chatMessage.dataValues,
+        sender: sender
+          ? sender.get({ plain: true })
+          : { id: senderId, name: "Unknown" },
+      });
+
+      console.log(chatMessage);
+    } catch (error) {
+      console.log(`Error sending message`);
+    }
+  });
+
+  // Disconnect
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
