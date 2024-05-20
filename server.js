@@ -39,6 +39,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+
 // Connection to DB
 connectToDB();
 
@@ -84,6 +86,13 @@ io.on("connection", (socket) => {
   // Disconnect
   socket.on("disconnect", () => {
     console.log("Client disconnected");
+  });
+});
+
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    data: null,
+    error: "Server Error",
   });
 });
 

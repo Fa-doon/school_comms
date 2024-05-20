@@ -1,4 +1,4 @@
-const { Chatroom, Chatmessage, User } = require("../models");
+const { Chatroom, Chatmessage, User, Sequelize } = require("../models");
 // const { v4: uuidv4 } = require("uuid");
 
 // Create chat room
@@ -33,7 +33,7 @@ const createChatroom = async (req, res) => {
 
     res.status(201).json({ message: "Chat initiated successfully", chatroom });
   } catch (error) {
-    console.error("Error initiating chat:", error);
+    console.log("Error initiating chat:", error);
     res.status(500).json({ error: "Failed to initiate chat" });
   }
 };
@@ -66,7 +66,7 @@ const sendMessage = async (req, res) => {
 
     res.status(201).json({ message: "Message sent successfully", chatMessage });
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.log("Error sending message:", error);
     res.status(500).json({ error: "Failed to send message" });
   }
 };
@@ -91,8 +91,47 @@ const getChatMessagesByRoomId = async (req, res) => {
 
     res.status(200).json({ messages });
   } catch (error) {
-    console.error("Error retrieving messages:", error);
+    console.log("Error retrieving messages:", error);
     res.status(500).json({ error: "Failed to retrieve messages" });
+  }
+};
+
+// Get all chatrooms for a particular user
+const getAllChatrooms = async (req, res) => {
+  try {
+    const userID = req.user.id;
+
+    const chatrooms = Chatroom.findAll({
+      where: {
+        [Sequelize.Op.or]: [{ sender_id: userID }, { receiver_id: userID }],
+      },
+      include: [
+        {
+          model: User,
+          as: "sender",
+          attributes: ["id", "name"],
+        },
+        {
+          model: User,
+          as: "receiver",
+          attributes: ["id", "name"],
+        },
+      ],
+    });
+
+    const userChatrooms = chatrooms.map((chatroom) => {
+      const otherUser =
+        chatroom.sender_id === userID ? chatroom.receiver : chatroom.sender;
+      return {
+        roomName: chatroom.name,
+        user: otherUser,
+      };
+    });
+
+    res.status(200).json(userChatrooms);
+  } catch (error) {
+    console.log("Error retrieving chatrooms:", error);
+    res.status(500).json({ error: "Failed to retrieve chatrooms" });
   }
 };
 
@@ -100,4 +139,5 @@ module.exports = {
   createChatroom,
   sendMessage,
   getChatMessagesByRoomId,
+  getAllChatrooms
 };
