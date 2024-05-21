@@ -81,11 +81,17 @@ const loginUser = async (req, res) => {
 const getLoggedInUser = async (req, res) => {
   try {
     const user = req.user;
-    
-    res.status(200).json(user);
-  } catch (error) {}
-};
 
+    res.status(200).json({
+      user: user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Something went wrong",
+    });
+  }
+};
 
 module.exports = {
   loginUser,

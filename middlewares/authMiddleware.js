@@ -11,10 +11,10 @@ const isAdmin = async (req, res, next) => {
       });
     }
 
-    const token = await body.split(" ")[1];
+    const token = body.split(" ")[1];
     let decoded;
     try {
-      decoded = await jwt.verify(token, process.env.JWT_KEY);
+      decoded =  jwt.verify(token, process.env.JWT_KEY);
     } catch (error) {
       return res.status(403).json({
         message: "Forbidden - Invalid or expired token",
@@ -50,8 +50,8 @@ const isUser = async (req, res, next) => {
       });
     }
 
-    const token = await body.split(" ")[1];
-    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+    const token = body.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({
       where: { id: decoded.id },
       attributes: { exclude: ["password"] },
@@ -74,4 +74,55 @@ const isUser = async (req, res, next) => {
   }
 };
 
-module.exports = { isAdmin, isUser };
+
+const decodeUser = async (req, res, next) => {
+  try {
+    const body = req.headers.authorization;
+
+    if (!body) {
+      return res.status(401).json({
+        message: "Unauthorized, no token provided",
+      });
+    }
+
+    const token = body.split(" ")[1];
+    let decoded;
+
+  // checking for non admin users
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (errUser) {
+      // cecking for admin users - on fail
+      try {
+        decoded = jwt.verify(token, process.env.JWT_KEY);
+      } catch (errAdmin) {
+        return res.status(403).json({
+          message: "Forbidden - Invalid or expired token",
+        });
+      }
+    }
+
+    const user = await User.findOne({
+      where: { id: decoded.id },
+      attributes: { exclude: ["password"] },
+      include: [{ model: Role, attributes: ["name"] }],
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Error in decodeUser middleware:", error);
+    res.status(500).json({
+      message: "Failed to authenticate token",
+    });
+  }
+};
+
+
+module.exports = { isAdmin, isUser, decodeUser  };
