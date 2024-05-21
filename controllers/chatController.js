@@ -25,10 +25,12 @@ const createChatroom = async (req, res) => {
         sender_id: sortedSenderId,
         receiver_id: sortedReceiverId,
       });
-    } else {
-      return res.status(409).json({
-        message: `Chatroom already exists`,
-        
+    }
+
+    if (chatroom) {
+      return res.status(200).json({
+        message: "Chatroom already exists",
+        chatroom,
       });
     }
 
