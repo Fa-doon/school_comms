@@ -13,7 +13,6 @@ const chatRoute = require("./routes/chatRoute");
 const roleRoute = require("./routes/roleRoute");
 
 const { Chatroom, Chatmessage, User } = require("./models");
-const { createChatroom, sendMessage } = require("./controllers/chatController");
 
 const app = express();
 const server = http.createServer(app);
@@ -26,7 +25,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/api/users", authRoute);
+app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/role", roleRoute);
@@ -39,7 +38,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-
 
 // Connection to DB
 connectToDB();
@@ -69,7 +67,6 @@ io.on("connection", (socket) => {
         attributes: ["id", "name"],
       });
 
-    
       io.to(roomName).emit("newMessage", {
         ...chatMessage.dataValues,
         sender: sender

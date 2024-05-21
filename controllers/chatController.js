@@ -28,6 +28,7 @@ const createChatroom = async (req, res) => {
     } else {
       return res.status(409).json({
         message: `Chatroom already exists`,
+        
       });
     }
 
@@ -45,7 +46,7 @@ const sendMessage = async (req, res) => {
 
     let chatroom = await Chatroom.findOne({ where: { name: roomName } });
     if (!chatroom) {
-      return res.status(404).json({ error: "Chatroom not found" });
+      return res.status(200).json({ error: "Chatroom not found" });
     }
 
     if (
@@ -78,7 +79,7 @@ const getChatMessagesByRoomId = async (req, res) => {
 
     const chatroom = await Chatroom.findOne({ where: { name: roomName } });
     if (!chatroom) {
-      return res.status(404).json({ error: "Chatroom not found" });
+      return res.status(200).json({ error: "Chatroom not found" });
     }
 
     const messages = await Chatmessage.findAll({
@@ -101,7 +102,7 @@ const getAllChatrooms = async (req, res) => {
   try {
     const userID = req.user.id;
 
-    const chatrooms = Chatroom.findAll({
+    const chatrooms = await Chatroom.findAll({
       where: {
         [Sequelize.Op.or]: [{ sender_id: userID }, { receiver_id: userID }],
       },
@@ -109,15 +110,19 @@ const getAllChatrooms = async (req, res) => {
         {
           model: User,
           as: "sender",
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "username", "email"],
         },
         {
           model: User,
           as: "receiver",
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "username", "email"],
         },
       ],
     });
+
+    if (chatrooms.length === 0) {
+      return res.status(200).json([]);
+    }
 
     const userChatrooms = chatrooms.map((chatroom) => {
       const otherUser =
@@ -139,5 +144,5 @@ module.exports = {
   createChatroom,
   sendMessage,
   getChatMessagesByRoomId,
-  getAllChatrooms
+  getAllChatrooms,
 };

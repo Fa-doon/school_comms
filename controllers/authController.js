@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Role } = require("../models");
 const jwt = require("jsonwebtoken");
 
 const loginUser = async (req, res) => {
@@ -10,6 +10,10 @@ const loginUser = async (req, res) => {
 
     const existingUser = await User.findOne({
       where: { email: userInfo.email },
+      include: {
+        model: Role,
+        attributes: ["name"],
+      },
     });
     if (!existingUser) {
       return res.status(401).json({
@@ -25,7 +29,9 @@ const loginUser = async (req, res) => {
       });
     }
 
-    if (existingUser.role_id === 1) {
+    const role = existingUser.Role.name;
+
+    if (role === "admin") {
       // generate jwt for admin
       const token = await jwt.sign(
         {
@@ -37,9 +43,12 @@ const loginUser = async (req, res) => {
         { expiresIn: "1d" }
       );
 
+      const { password, ...userDetails } = existingUser.toJSON();
+
       return res.status(200).json({
         message: "Login successful",
         token,
+        userDetails,
       });
     } else {
       // generate jwt for other users
@@ -53,9 +62,11 @@ const loginUser = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
+      const { password, ...userDetails } = existingUser.toJSON();
       return res.status(200).json({
         message: "Login successful",
         token,
+        userDetails,
       });
     }
   } catch (error) {
@@ -67,6 +78,16 @@ const loginUser = async (req, res) => {
   }
 };
 
+const getLoggedInUser = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    res.status(200).json(user);
+  } catch (error) {}
+};
+
+
 module.exports = {
   loginUser,
+  getLoggedInUser,
 };

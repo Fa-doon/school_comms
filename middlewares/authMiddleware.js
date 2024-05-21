@@ -20,14 +20,16 @@ const isAdmin = async (req, res, next) => {
         message: "Forbidden - Invalid or expired token",
       });
     }
-    const user = await User.findOne({ where: { username: decoded.username } });
+    const user = await User.findOne({
+      where: { username: decoded.username },
+    });
 
     if (!user) {
       return res.status(401).json({
         message: "Unauthorized",
       });
     }
-  
+
     req.user = user;
     next();
   } catch (error) {
@@ -50,7 +52,11 @@ const isUser = async (req, res, next) => {
 
     const token = await body.split(" ")[1];
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ where: { id: decoded.id } });
+    const user = await User.findOne({
+      where: { id: decoded.id },
+      attributes: { exclude: ["password"] },
+      include: [{ model: Role, attributes: ["name"] }],
+    });
 
     if (!user) {
       return res.status(401).json({

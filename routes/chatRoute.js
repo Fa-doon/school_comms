@@ -8,7 +8,7 @@ const {
 const { isUser } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-router.post("/chatroom", createChatroom);
+router.post("/chatroom", isUser, createChatroom);
 router.post("/messages", isUser, sendMessage);
 router.get("/messages/:roomName", getChatMessagesByRoomId);
 router.get("/user-chatrooms", isUser, getAllChatrooms);
