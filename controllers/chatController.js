@@ -123,7 +123,9 @@ const getAllChatrooms = async (req, res) => {
     });
 
     if (chatrooms.length === 0) {
-      return res.status(200).json([]);
+      return res.status(200).json({
+        userChatrooms: [],
+      });
     }
 
     const userChatrooms = chatrooms.map((chatroom) => {
@@ -135,7 +137,7 @@ const getAllChatrooms = async (req, res) => {
       };
     });
 
-    res.status(200).json(userChatrooms);
+    res.status(200).json({ userChatrooms });
   } catch (error) {
     console.log("Error retrieving chatrooms:", error);
     res.status(500).json({ error: "Failed to retrieve chatrooms" });
