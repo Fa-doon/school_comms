@@ -17,6 +17,8 @@ const createChatroom = async (req, res) => {
       },
     });
 
+   
+
     if (!chatroom) {
       const roomName = `Room_${sortedSenderId}_${sortedReceiverId}`;
 
@@ -25,15 +27,14 @@ const createChatroom = async (req, res) => {
         sender_id: sortedSenderId,
         receiver_id: sortedReceiverId,
       });
-    }
-
-    if (chatroom) {
+    } else {
       return res.status(200).json({
         message: "Chatroom already exists",
         chatroom,
       });
     }
 
+   
     res.status(201).json({ message: "Chat initiated successfully", chatroom });
   } catch (error) {
     console.log("Error initiating chat:", error);
