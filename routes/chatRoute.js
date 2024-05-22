@@ -5,13 +5,17 @@ const {
   getChatMessagesByRoomId,
   getAllChatrooms,
 } = require("../controllers/chatController");
-const { isUser, isAdmin } = require("../middlewares/authMiddleware");
+const {
+  isUser,
+  isAdmin,
+  decodeUser,
+} = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-router.post("/chatroom", isUser, createChatroom);
-router.post("/messages", isUser, sendMessage);
-router.get("/messages/:roomName", getChatMessagesByRoomId);
-router.get("/user-chatrooms", isUser, getAllChatrooms);
-router.get("/admin-chatrooms", isAdmin, getAllChatrooms);
+router.post("/chatroom", decodeUser, createChatroom);
+router.post("/messages", decodeUser, sendMessage);
+router.get("/messages/:roomName", decodeUser, getChatMessagesByRoomId);
+router.get("/user-chatrooms", decodeUser, getAllChatrooms);
+// router.get("/admin-chatrooms", isAdmin, getAllChatrooms);
 
 module.exports = router;
