@@ -18,7 +18,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://school-comms.onrender.com",
+    origin: "https://school-comms.onrender.com/socket.io",
     methods: ["GET", "POST"],
   },
 });
