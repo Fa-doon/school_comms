@@ -3,7 +3,7 @@ require("dotenv").config();
 const { connectToDB } = require("./config/db");
 const http = require("http");
 const path = require("path");
-const socket = require("socket.io");
+const { Server } = require("socket.io");
 const cors = require("cors");
 
 // Importing routes
@@ -16,7 +16,12 @@ const { Chatroom, Chatmessage, User } = require("./models");
 
 const app = express();
 const server = http.createServer(app);
-const io = socket(server);
+const io = new Server(server, {
+  cors: {
+    origin: "https://school-comms.onrender.com",
+    methods: ["GET", "POST"],
+  },
+});
 
 const PORT = process.env.PORT || 8080;
 
