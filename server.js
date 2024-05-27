@@ -25,6 +25,11 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 8080;
 
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -35,9 +40,6 @@ app.use("/api/users", userRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/role", roleRoute);
 
-// app.get("/", (req, res) => {
-//   res.send("Hello Backend");
-// });
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
@@ -59,6 +61,8 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async (data) => {
     const { roomName, senderId, receiverId, message } = data;
 
+    console.log(data);
+
     try {
       const chatMessage = await Chatmessage.create({
         room_id: roomName,
@@ -79,7 +83,7 @@ io.on("connection", (socket) => {
           : { id: senderId, name: "Unknown" },
       });
 
-      console.log(chatMessage);
+      // console.log(chatMessage);
     } catch (error) {
       console.log(`Error sending message`);
     }

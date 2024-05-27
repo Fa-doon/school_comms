@@ -9,12 +9,15 @@ const createUser = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+    // Ensures that admin has to create that role first
     const role = await Role.findOne({ where: { name: role_name } });
     if (!role) {
       return res.status(404).json({ error: "Role not found" });
     }
 
-    const existingUser = await User.findOne({ where: { email: email } });
+    const existingUser = await User.findOne({
+      where: { email: email },
+    });
     if (existingUser) {
       return res.status(409).json({
         message: "Email already exists",
@@ -30,12 +33,11 @@ const createUser = async (req, res) => {
     });
 
     const userId = newUser.id;
-    const userResponse = newUser.get({ plain: true });
-    delete userResponse.password;
+    const { password: omittedPassword, ...userDetails } = newUser.toJSON();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Registration successful",
-      newUser: userResponse,
+      newUser: userDetails,
       userId: userId,
     });
   } catch (error) {
@@ -56,7 +58,10 @@ const getUsersByRolename = async (req, res) => {
       });
     }
 
-    const users = await User.findAll({ where: { role_id: role.id } });
+    const users = await User.findAll({
+      where: { role_id: role.id },
+      attributes: { exclude: ["password"] },
+    });
     const userCount = await User.count({ where: { role_id: role.id } });
 
     res.status(200).json({
@@ -76,12 +81,14 @@ const getUsersByRolename = async (req, res) => {
 const getUserById = async (req, res) => {
   const id = req.params.id;
   try {
-    const user = await User.findByPk(id);
-    if (!user) {
+    const userDetails = await User.findByPk(id);
+    if (!userDetails) {
       return res.status(404).json({
         message: `User with id ${id} does not exist`,
       });
     }
+
+    const {password, ...user} = userDetails.toJSON()
 
     res.status(200).json({
       message: "User retrieved successfully",
@@ -208,7 +215,7 @@ const deleteUser = async (req, res) => {
     const user = await User.findByPk(id);
 
     if (!user) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: `User with the id ${id} does not exist`,
       });
     }

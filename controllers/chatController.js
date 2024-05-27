@@ -17,8 +17,6 @@ const createChatroom = async (req, res) => {
       },
     });
 
-   
-
     if (!chatroom) {
       const roomName = `Room_${sortedSenderId}_${sortedReceiverId}`;
 
@@ -34,7 +32,6 @@ const createChatroom = async (req, res) => {
       });
     }
 
-   
     res.status(201).json({ message: "Chat initiated successfully", chatroom });
   } catch (error) {
     console.log("Error initiating chat:", error);
@@ -145,9 +142,41 @@ const getAllChatrooms = async (req, res) => {
   }
 };
 
+// const updateMessage = async (req, res) => {
+//   const messageId = req.params.id
+//   const userId = req.user.id
+
+// };
+
+const deletemessageById = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+    const userId = req.user.id;
+
+    const message = await Chatmessage.findOne({ where: { id: messageId } });
+    if (!message) {
+      return res.status(200).json({ message: "Message not found" });
+    }
+
+    if (message.sender_id !== userId) {
+      return res.status(403).json({ error: "You cannot delete this message" });
+    }
+
+    await message.destroy();
+
+    req.io.to(message.room_id).emit("messageDeleted", { messageId });
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log("Error deleting message:", error);
+    res.status(500).json({ error: "Failed to delete message" });
+  }
+};
+
 module.exports = {
   createChatroom,
   sendMessage,
   getChatMessagesByRoomId,
   getAllChatrooms,
+  deletemessageById,
 };
