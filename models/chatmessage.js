@@ -32,11 +32,12 @@ module.exports = (sequelize, DataTypes) => {
       sender_id: DataTypes.INTEGER,
       receiver_id: DataTypes.INTEGER,
       message: DataTypes.TEXT,
+      seen: DataTypes.BOOLEAN,
     },
     {
       sequelize,
       modelName: "Chatmessage",
-      timestamps: false,
+      timestamps: true,
     }
   );
   return Chatmessage;

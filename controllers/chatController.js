@@ -42,20 +42,23 @@ const createChatroom = async (req, res) => {
 //Create a new chat message
 const sendMessage = async (req, res) => {
   try {
-    const { roomName, senderId, receiverId, message } = req.body;
+    const { roomName, message } = req.body;
+    const senderId = req.user.id;
 
     let chatroom = await Chatroom.findOne({ where: { name: roomName } });
     if (!chatroom) {
       return res.status(200).json({ error: "Chatroom not found" });
     }
 
+    const receiverId =
+      chatroom.sender_id === senderId ? chatroom.receiver_id : chatroom.sender_id;
     if (
-      chatroom.sender_id !== senderId ||
-      chatroom.receiver_id !== receiverId
+      chatroom.sender_id !== senderId &&
+      chatroom.receiver_id !== senderId
     ) {
       return res
         .status(400)
-        .json({ error: "Invalid sender or receiver for this chatroom" });
+        .json({ error: "Invalid sender chatroom" });
     }
 
     const chatMessage = await Chatmessage.create({
@@ -117,6 +120,19 @@ const getAllChatrooms = async (req, res) => {
           as: "receiver",
           attributes: ["id", "name", "username", "email"],
         },
+        {
+          model: Chatmessage,
+          as: "messages",
+          include: [
+            {
+              model: User,
+              as: "sender",
+              attributes: ["id", "name", "username", "email"],
+            },
+          ],
+          order: [["createdAt", "DESC"]],
+          limit: 1,
+        },
       ],
     });
 
@@ -126,14 +142,38 @@ const getAllChatrooms = async (req, res) => {
       });
     }
 
-    const userChatrooms = chatrooms.map((chatroom) => {
-      const otherUser =
-        chatroom.sender_id === userID ? chatroom.receiver : chatroom.sender;
-      return {
-        roomName: chatroom.name,
-        user: otherUser,
-      };
-    });
+    const userChatrooms = await Promise.all(
+      chatrooms.map(async (chatroom) => {
+        const otherUser =
+          chatroom.sender_id === userID ? chatroom.receiver : chatroom.sender;
+        const lastMessage =
+          (chatroom.messages && chatroom.messages.length) > 0 ? chatroom.messages[0] : null;
+
+        //counting unseen messages
+        const unseenCount = await Chatmessage.count({
+          where: {
+            room_id: chatroom.name,
+            seen: false,
+            receiver_id: userID,
+          },
+        });
+        return {
+          roomName: chatroom.name,
+          user: otherUser,
+          lastMessage: lastMessage
+            ? {
+                id: lastMessage.id,
+                message: lastMessage.message,
+                seen: lastMessage.seen,
+                sender: lastMessage.sender,
+                createdAt: lastMessage.createdAt,
+                updatedAt: lastMessage.updatedAt
+              }
+            : null,
+          unseenCount: unseenCount,
+        };
+      })
+    );
 
     res.status(200).json({ userChatrooms });
   } catch (error) {
@@ -141,6 +181,9 @@ const getAllChatrooms = async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve chatrooms" });
   }
 };
+
+// Getting all messages for a particular user
+const getUserMessages = async (req, res) => {};
 
 // const updateMessage = async (req, res) => {
 //   const messageId = req.params.id
@@ -155,7 +198,7 @@ const deletemessageById = async (req, res) => {
 
     const message = await Chatmessage.findOne({ where: { id: messageId } });
     if (!message) {
-      return res.status(200).json({ message: "Message not found" });
+      return res.status(404).json({ message: "Message not found" });
     }
 
     if (message.sender_id !== userId) {
