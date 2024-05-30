@@ -51,14 +51,11 @@ const sendMessage = async (req, res) => {
     }
 
     const receiverId =
-      chatroom.sender_id === senderId ? chatroom.receiver_id : chatroom.sender_id;
-    if (
-      chatroom.sender_id !== senderId &&
-      chatroom.receiver_id !== senderId
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Invalid sender chatroom" });
+      chatroom.sender_id === senderId
+        ? chatroom.receiver_id
+        : chatroom.sender_id;
+    if (chatroom.sender_id !== senderId && chatroom.receiver_id !== senderId) {
+      return res.status(400).json({ error: "Invalid sender chatroom" });
     }
 
     const chatMessage = await Chatmessage.create({
@@ -91,6 +88,7 @@ const getChatMessagesByRoomId = async (req, res) => {
         { model: User, as: "sender", attributes: ["id", "name"] },
         { model: User, as: "receiver", attributes: ["id", "name"] },
       ],
+      order: [["createdAt", "ASC"]],
     });
 
     res.status(200).json({ messages });
@@ -147,7 +145,9 @@ const getAllChatrooms = async (req, res) => {
         const otherUser =
           chatroom.sender_id === userID ? chatroom.receiver : chatroom.sender;
         const lastMessage =
-          (chatroom.messages && chatroom.messages.length) > 0 ? chatroom.messages[0] : null;
+          (chatroom.messages && chatroom.messages.length) > 0
+            ? chatroom.messages[0]
+            : null;
 
         //counting unseen messages
         const unseenCount = await Chatmessage.count({
@@ -167,7 +167,7 @@ const getAllChatrooms = async (req, res) => {
                 seen: lastMessage.seen,
                 sender: lastMessage.sender,
                 createdAt: lastMessage.createdAt,
-                updatedAt: lastMessage.updatedAt
+                updatedAt: lastMessage.updatedAt,
               }
             : null,
           unseenCount: unseenCount,
