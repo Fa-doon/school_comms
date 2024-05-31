@@ -69,6 +69,7 @@ io.on("connection", (socket) => {
         sender_id: senderId,
         receiver_id: receiverId,
         message: message,
+        seen: false,
       });
 
       // getting the sender's details to send with the emitted event
@@ -86,6 +87,27 @@ io.on("connection", (socket) => {
       // console.log(chatMessage);
     } catch (error) {
       console.log(`Error sending message`);
+    }
+  });
+
+  socket.on("markMessagesAsSeen", async (data) => {
+    const { roomName, userId } = data;
+
+    try {
+      await Chatmessage.update(
+        { seen: true },
+        {
+          where: {
+            room_id: roomName,
+            sender_id: userId,
+            seen: false,
+          },
+        }
+      );
+
+      io.to(roomName).emit("messagesSeen", { roomName, userId });
+    } catch (error) {
+      console.log("Error marking messages as seen", error);
     }
   });
 
